@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"sync"
@@ -140,6 +141,7 @@ func (p *Pusher) Put(ctx context.Context, ref name.Reference, t Taggable) error 
 }
 
 func (p *Pusher) Push(ctx context.Context, ref name.Reference, t Taggable) error {
+	log.Printf("DMDEBUG: Pusher.Push: ref=%v", ref)
 	w, err := p.writer(ctx, ref.Context(), p.o)
 	if err != nil {
 		return err
@@ -246,20 +248,24 @@ func taggableToManifest(t Taggable) (manifest, error) {
 
 	if d, ok := t.(*Descriptor); ok {
 		if d.MediaType.IsIndex() {
+			log.Println("DMDEBUG 251 IsIndex")
 			return d.ImageIndex()
 		}
 
 		if d.MediaType.IsImage() {
+			log.Println("DMDEBUG 256 IsIndex")
 			return d.Image()
 		}
 
 		if d.MediaType.IsSchema1() {
+			log.Println("DMDEBUG 251 IsSchema1")
 			return d.Schema1()
 		}
-
+		log.Println("DMDEBUG 264 Descriptor")
 		return tagManifest{t, describable{d.toDesc()}}, nil
 	}
 
+	log.Println("DMDEBUG 270 default DockerManifestSchema2")
 	desc := v1.Descriptor{
 		// A reasonable default if Taggable doesn't implement MediaType.
 		MediaType: types.DockerManifestSchema2,
@@ -281,7 +287,7 @@ func taggableToManifest(t Taggable) (manifest, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	log.Println("DMDEBUG 290 before tagManifest")
 	return tagManifest{t, describable{desc}}, nil
 }
 
@@ -456,6 +462,7 @@ func (rw *repoWriter) manifestExists(ctx context.Context, ref name.Reference, t 
 }
 
 func (rw *repoWriter) commitManifest(ctx context.Context, ref name.Reference, m manifest) error {
+	log.Printf("DMDEBUG repoWriter.commitManifest ref=%s", ref.Name())
 	if rw.o.progress != nil {
 		size, err := m.Size()
 		if err != nil {

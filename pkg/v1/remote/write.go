@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"sort"
@@ -549,6 +550,7 @@ func (f fallbackTaggable) MediaType() (types.MediaType, error) { return types.OC
 
 // commitManifest does a PUT of the image's manifest.
 func (w *writer) commitManifest(ctx context.Context, t Taggable, ref name.Reference) error {
+	log.Printf("DMDEBUG 553 writer.commitManifest ref=%s", ref.Name())
 	// If the manifest refers to a subject, we need to check whether we need to update the fallback tag manifest.
 	raw, err := t.RawManifest()
 	if err != nil {
@@ -572,6 +574,7 @@ func (w *writer) commitManifest(ctx context.Context, t Taggable, ref name.Refere
 			return err
 		}
 
+		log.Printf("DMDEBUG 577 writer.commitManifest URL: /v2/%s/manifests/%s", w.repo.RepositoryStr(), ref.Identifier())
 		u := w.url(fmt.Sprintf("/v2/%s/manifests/%s", w.repo.RepositoryStr(), ref.Identifier()))
 
 		// Make the request to PUT the serialized manifest
@@ -583,11 +586,13 @@ func (w *writer) commitManifest(ctx context.Context, t Taggable, ref name.Refere
 
 		resp, err := w.client.Do(req.WithContext(ctx))
 		if err != nil {
+			log.Printf("DMDEBUG 589 err: %v", err)
 			return err
 		}
 		defer resp.Body.Close()
 
 		if err := transport.CheckError(resp, http.StatusOK, http.StatusCreated, http.StatusAccepted); err != nil {
+			log.Printf("DMDEBUG 595 err: %v", err)
 			return err
 		}
 

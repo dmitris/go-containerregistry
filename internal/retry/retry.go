@@ -64,7 +64,6 @@ func Retry(f func() error, p Predicate, backoff wait.Backoff) (err error) {
 	if p == nil {
 		return fmt.Errorf("nil p passed to retry")
 	}
-
 	condition := func() (bool, error) {
 		err = f()
 		if p(err) {
